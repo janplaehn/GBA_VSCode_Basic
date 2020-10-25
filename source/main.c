@@ -31,6 +31,37 @@ void vsync()
 	while (REG_VCOUNT < 160);
 }
 
+int32 __qran_seed = 42;
+
+int32 sqran(int32 a_val)
+{
+	int32 old = __qran_seed;
+	__qran_seed = a_val;
+	return old;
+}
+
+int32 qran()
+{
+	__qran_seed = 1664525 * __qran_seed + 1013904223;
+	return (__qran_seed >> 16) & 0x7FFF;
+}
+
+int qran_range(int32 a_min, int32 a_max)
+{
+	return (qran()*(a_max - a_min) >> 15) + a_min;
+}
+
+int32 sign(int32 a_val)
+{
+	return (!(a_val & 0x80000000) && !a_val) ? 1 : -1;
+}
+
+int32 abs(int32 a_val)
+{
+	int32 mask = a_val >> 31;
+	return (a_val ^ mask) - mask;
+}
+
 uint16 setColor(uint8 a_red, uint8 a_green, uint8 a_blue)
 {
 	return (a_red & 0x1F) | (a_green & 0x1F) << 5 | (a_blue & 0x1f) << 10;
@@ -136,13 +167,61 @@ void DrawBall(Ball* a_ball)
 }
 
 void StartBall(Ball* a_ball) {
-	
+	while (a_ball->xDir == 0)
+	{
+		a_ball->xDir = qran_range(-1, 2);
+	}
+	a_ball->yDir = qran_range(-1, 2);
+}
+
+typedef struct Paddle
+{
+	int32 x, y, width, height;
+	uint16 color;
+}Paddle;
+
+void InitPaddle(Paddle* a_paddle, int32 a_x, int32 a_y, int32 a_width, int32 a_height, int16 a_color)
+{
+	a_paddle->x = a_x;
+	a_paddle->y = a_y;
+	a_paddle->width = a_width;
+	a_paddle->height = a_height;
+	a_paddle->color = a_color;
+}
+
+void MovePaddle(Paddle* a_paddle, int32 a_val)
+{
+	a_paddle->y += a_val;
+	if (a_paddle->y < 0)
+	{
+		a_paddle->y = 0;
+	}
+	if (a_paddle->y > SCREEN_H - a_paddle->height)
+	{
+		a_paddle->y = SCREEN_H - a_paddle->height;
+	}
+
+}
+
+void ClearPaddle(Paddle* a_paddle)
+{
+	drawRect(a_paddle->x, a_paddle->y, a_paddle->width, a_paddle->height, setColor(0, 0, 0));
+}
+
+void DrawPaddle(Paddle* a_paddle)
+{
+	drawRect(a_paddle->x, a_paddle->y, a_paddle->width, a_paddle->height, a_paddle->color);
 }
 
 int main()
 {
 	//set GBA rendering context to MODE 3 Bitmap Rendering
 	REG_DISPLAYCONTROL = VIDEOMODE_3 | BGMODE_2;
+
+	sqran(14);
+	Paddle p1, p2;
+	InitPaddle(&p1, 10, 60, 8, 40, setColor(0,0,31));
+	InitPaddle(&p2, SCREEN_W - 18, 60, 8, 40, setColor(31,0,0));
 
 	Ball ball;
 	InitBall(&ball, 115, 75, 10, setColor(31, 31, 31));
@@ -151,11 +230,16 @@ int main()
     	vsync();
 
 		ClearBall(&ball);
+		ClearPaddle(&p1);
+		ClearPaddle(&p2);
+
 		MoveBall(&ball);
 
 		drawLine(10, 4, 230, 4, setColor(31, 31, 31));
 		drawLine(230, 156, 10, 156, setColor(31, 31, 31));
 		DrawBall(&ball);
+		DrawPaddle(&p1);
+		DrawPaddle(&p2);
 
 	}
 	
