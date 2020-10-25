@@ -9,6 +9,8 @@
 //include Pong related structures and functions
 #include "ball.h"
 #include "paddle.h"
+#include "gba_collision.h"
+
 
 int main()
 {
@@ -35,6 +37,8 @@ int main()
 		ClearPaddle(&p1);
 		ClearPaddle(&p2);
 
+		CollideBall(&ball, &p1);
+		CollideBall(&ball, &p2);
 		MoveBall(&ball);
 
 		s16 pDir = 0;

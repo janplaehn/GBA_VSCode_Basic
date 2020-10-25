@@ -14,6 +14,8 @@ void InitBall(Ball* a_ball, s32 a_x, s32 a_y, s32 a_size, u16 a_color)
 {
 	a_ball->x = a_x;
 	a_ball->y = a_y;
+	a_ball->prevX = a_x;
+	a_ball->prevY = a_y;
 	a_ball->size = a_size;
 	a_ball->color = a_color;
 	a_ball->xDir = a_ball->yDir = 0;
@@ -22,6 +24,9 @@ void InitBall(Ball* a_ball, s32 a_x, s32 a_y, s32 a_size, u16 a_color)
 
 void MoveBall(Ball* a_ball)
 {
+	a_ball->prevX = a_ball->x;
+	a_ball->prevY = a_ball->y;
+
 	bool reset = false;
 	a_ball->y += a_ball->yDir;
 	if (a_ball->y < 0)
@@ -48,6 +53,14 @@ void MoveBall(Ball* a_ball)
 		StartBall(a_ball);
 	}
 
+}
+
+void CollideBall(Ball* a_ball, Paddle* a_paddle) {
+	if (IsColliding(a_ball, a_paddle)) {
+		a_ball->x = a_ball->prevX;
+		a_ball->y = a_ball->prevY;
+		a_ball->xDir *= -1;
+	}
 }
 
 void ClearBall(Ball* a_ball)
