@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "gdb-debug", 
+            "preLaunchTask": "gdb-debug", //"gdb-debug"
             "postDebugTask": "stop emulation",
             "serverLaunchTimeout": 10000,
             "stopAtEntry": true,
